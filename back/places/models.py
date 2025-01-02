@@ -4,7 +4,7 @@ class Place(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(null=True, blank=True)
     coordinates = models.CharField(max_length=255)  # e.g., "48.8584,2.2945"
-    image_url = models.URLField(null=True, blank=True)
+    image_url = models.URLField(max_length=500, null=True, blank=True)
     category = models.CharField(max_length=100, null=True, blank=True)
     country = models.CharField(max_length=100)
     city = models.CharField(max_length=100, null=True, blank=True)
