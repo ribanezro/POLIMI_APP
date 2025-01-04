@@ -11,7 +11,11 @@ from django.contrib.auth import authenticate
 from rest_framework.permissions import IsAdminUser
 from rest_framework.decorators import permission_classes
 
-    
+GOOGLE_CLIENT_IDS = [
+    "119778560119-vdasr532tr43s0uoggbtqbo8a8gg6svg.apps.googleusercontent.com",  # Web
+    "119778560119-iso4ufo35fp3cippa9p7s9ab45vu7lbv.apps.googleusercontent.com",  # iOS
+    "119778560119-android123xyz.apps.googleusercontent.com",                    # Android
+]
 
 @swagger_auto_schema(
     method='post',
@@ -94,27 +98,48 @@ def login_user(request):
     },
 )
 @api_view(['POST'])
-def google_login_register(request):
-    id_token_raw = request.data.get('id_token')
-    if not id_token_raw:
-        return Response({'error': 'ID token is required'}, status=status.HTTP_400_BAD_REQUEST)
+def google_login(request):
+    token = request.data.get('token')
+    if not token:
+        return Response({'error': 'Token is required'}, status=400)
 
     try:
-        id_info = id_token.verify_oauth2_token(id_token_raw, google_requests.Request(), settings.GOOGLE_CLIENT_ID)
-        email = id_info['email']
-        username = id_info.get('name', email.split('@')[0])
-        profile_picture = id_info.get('picture', '')
+        # Verify the token
+        id_info = id_token.verify_oauth2_token(
+            token, google_requests.Request()
+        )
 
+        # Validate the token's audience
+        if id_info['aud'] not in settings.GOOGLE_CLIENT_IDS:
+            return Response({'error': 'Invalid client ID'}, status=403)
+
+        # Extract user info
+        email = id_info.get('email')
+        name = id_info.get('name', '').split()[0]  # Default username suggestion
+        picture = id_info.get('picture', '')
+
+        # Check or create the user
         user, created = CustomUser.objects.get_or_create(email=email)
-        if created:
-            user.username = username
-            user.profile_picture = profile_picture
-            user.set_unusable_password()
-            user.save()
 
-        return Response({'message': 'Google login successful', 'user_id': user.id, 'email': user.email}, status=status.HTTP_200_OK)
+        if created:
+            user.username = name
+            user.profile_picture = picture
+            user.save()
+            return Response({
+                'message': 'New user created, profile completion required',
+                'user_id': user.id,
+                'is_profile_complete': False
+            }, status=200)
+        else:
+            return Response({
+                'message': 'User logged in successfully',
+                'user_id': user.id,
+                'is_profile_complete': True,
+                'username': user.username,
+                'bio': user.bio,
+            }, status=200)
     except ValueError:
-        return Response({'error': 'Invalid ID token'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'error': 'Invalid token'}, status=400)
     
 @swagger_auto_schema(
     method='get',
