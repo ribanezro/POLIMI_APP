@@ -10,18 +10,17 @@ from django.db.models import Q
 
 @swagger_auto_schema(
     method='get',
-    description='Get all places grouped by country',
+    description='Get all places grouped by country in alphabetical order',
     responses={200: openapi.Response(
         description="List of places grouped by country",
         examples={
             "application/json": {
-                "USA": [
-                    {"id": 1, "name": "Statue of Liberty", "location": "New York", "category": "Historical"},
-                    {"id": 2, "name": "Yellowstone National Park", "location": "Wyoming", "category": "Nature"}
+                "Argentina": [
+                    {"id": 1, "name": "Buenos Aires", "location": "Buenos Aires", "category": "City"},
                 ],
                 "France": [
-                    {"id": 3, "name": "Eiffel Tower", "location": "Paris", "category": "Monument"}
-                ]
+                    {"id": 2, "name": "Eiffel Tower", "location": "Paris", "category": "Landmark"}
+                ],
             }
         }
     )}
@@ -31,7 +30,7 @@ def places_by_country(request):
     # Query all places
     places = Place.objects.all()
     
-    # Group places by country
+    # Group places by country and order countries alphabetically
     grouped_places = {}
     for place in places:
         country = place.country
@@ -39,7 +38,10 @@ def places_by_country(request):
             grouped_places[country] = []
         grouped_places[country].append(PlaceSerializer(place).data)
 
-    return Response(grouped_places)
+    # Sort the dictionary by country names
+    sorted_grouped_places = dict(sorted(grouped_places.items()))
+
+    return Response(sorted_grouped_places)
 
 # Lista de todos los lugares
 @swagger_auto_schema(
