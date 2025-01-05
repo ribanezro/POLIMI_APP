@@ -98,7 +98,7 @@ def login_user(request):
     },
 )
 @api_view(['POST'])
-def google_login(request):
+def google_login_register(request):
     token = request.data.get('token')
     if not token:
         return Response({'error': 'Token is required'}, status=400)

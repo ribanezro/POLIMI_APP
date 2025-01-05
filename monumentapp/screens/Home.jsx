@@ -1,44 +1,26 @@
 import React from 'react';
-import { StyleSheet, Text, View, Button } from 'react-native';
+import { ScrollView, StyleSheet, SafeAreaView, View } from 'react-native';
+import UserStats from '../components/UserStats';
+import RecentActivities from '../components/RecentActivities';
+import BucketListTeaser from '../components/BucketListTeaser';
+import TravelInspiration from '../components/TravelInspiration';
 
-const Home = ({ navigation }) => {
+const Home = () => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welcome to the App</Text>
-      <Text style={styles.subtitle}>Explore the features below:</Text>
-
-      {/* Example buttons for navigation */}
-      <Button 
-        title="Go to Profile" 
-        onPress={() => navigation.navigate('Profile')} 
-        color="#007BFF"
-      />
-      <Button 
-        title="View Settings" 
-        onPress={() => navigation.navigate('Settings')} 
-        color="#28A745"
-      />
-    </View>
+    <SafeAreaView style={styles.container}>
+    <ScrollView style={styles.container}>
+      <UserStats />
+      <BucketListTeaser />
+      <TravelInspiration />
+    </ScrollView>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#F9F9F9',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 20,
+    backgroundColor: '#f9f9f9',
   },
 });
 

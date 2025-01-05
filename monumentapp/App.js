@@ -1,24 +1,20 @@
 import React from "react";
-
 import { NavigationContainer } from "@react-navigation/native";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import Footer from "./navigation/footer";
+//import LoginScreen from "./screens/LoginScreen";
+//import RegisterScreen from "./screens/RegisterScreen";
 
-
-// Importing screens
-import Home from "./screens/Home";
-import LoginScreen from "./LoginScreen";
-import RegisterScreen from "./RegisterScreen";
-
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 export default function App() {
     return (
         <NavigationContainer>
-         <Stack.Navigator>
-            <Stack.Screen name="LoginScreen" component={LoginScreen} options={{headerShown: false}} />
-            <Stack.Screen name="RegisterScreen" component={RegisterScreen} options={{headerShown: false}} />
-            <Stack.Screen name="Home" component={Home} options={{headerShown: false}} />
-        </Stack.Navigator>
+            <Stack.Navigator screenOptions={{ headerShown: false }}>
+                {/* <Stack.Screen name="LoginScreen" component={LoginScreen} />
+                <Stack.Screen name="RegisterScreen" component={RegisterScreen} /> */}
+                <Stack.Screen name="Footer" component={Footer} />
+            </Stack.Navigator>
         </NavigationContainer>
     );
 }

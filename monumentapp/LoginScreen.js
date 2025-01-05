@@ -20,22 +20,22 @@ const LoginScreen = ({ navigation }) => {
 
   // Dynamic client ID configuration
   const clientId = isExpoGo
-  ? '119778560119-vdasr532tr43s0uoggbtqbo8a8gg6svg.apps.googleusercontent.com' // Web Client ID
-  : Platform.select({
-      ios: '119778560119-iso4ufo35fp3cippa9p7s9ab45vu7lbv.apps.googleusercontent.com', // iOS Client ID
-      android: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com', // Android Client ID
-      default: '119778560119-vdasr532tr43s0uoggbtqbo8a8gg6svg.apps.googleusercontent.com',
-    });
+    ? '119778560119-vdasr532tr43s0uoggbtqbo8a8gg6svg.apps.googleusercontent.com' // Web Client ID
+    : Platform.select({
+        ios: '119778560119-iso4ufo35fp3cippa9p7s9ab45vu7lbv.apps.googleusercontent.com', // iOS Client ID
+        android: 'YOUR_ANDROID_CLIENT_ID.apps.googleusercontent.com', // Android Client ID
+        default: '119778560119-vdasr532tr43s0uoggbtqbo8a8gg6svg.apps.googleusercontent.com',
+      });
 
   // Redirect URI configuration
   const redirectUri = isExpoGo
-  ? `https://auth.expo.io/@rafiki6334/monumentapp` // Replace with your Expo username and slug
-  : AuthSession.makeRedirectUri({
-      native: Platform.select({
-        ios: 'your.bundle.identifier:/oauthredirect',
-        android: 'com.yourcompany.yourapp:/oauthredirect',
-      }),
-    });
+    ? `https://auth.expo.io/@rafiki6334/monumentapp` // Replace with your Expo username and slug
+    : AuthSession.makeRedirectUri({
+        native: Platform.select({
+          ios: 'your.bundle.identifier:/oauthredirect',
+          android: 'com.yourcompany.yourapp:/oauthredirect',
+        }),
+      });
 
   console.log('Redirect URI:', redirectUri);
   console.log('Client ID being used:', clientId);
@@ -48,15 +48,16 @@ const LoginScreen = ({ navigation }) => {
 
   useEffect(() => {
     if (response) {
-      console.log('Google Auth Response:', response);
-
+      console.log('Google Auth Response:', JSON.stringify(response, null, 2));
+  
       if (response.type === 'success') {
+        console.log('Google Sign-In Successful:', response);
         const { authentication } = response;
         if (authentication) {
-          console.log('Access Token:', authentication.accessToken);
+          console.log('Access Token Received:', authentication.accessToken);
           handleGoogleSignIn(authentication.accessToken);
         } else {
-          console.error('No access token received:', response);
+          console.error('Authentication object missing:', response);
         }
       } else if (response.type === 'error') {
         console.error('Google Sign-In Error:', response.error);
@@ -65,7 +66,7 @@ const LoginScreen = ({ navigation }) => {
   }, [response]);
 
   const handleGoogleSignIn = async (token) => {
-    console.log('Sending token to backend:', token);
+    console.log('Sending Token to Backend:', token);
 
     try {
       const apiResponse = await fetch(
@@ -79,7 +80,7 @@ const LoginScreen = ({ navigation }) => {
         }
       );
       const result = await apiResponse.json();
-      console.log('Backend Response:', result);
+      console.log('Backend Response:', JSON.stringify(result, null, 2));
 
       if (result.error) {
         console.error('Backend Error:', result.error);
@@ -87,14 +88,15 @@ const LoginScreen = ({ navigation }) => {
       } else {
         console.log('User Info:', result);
         if (!result.user_type) {
+          console.log('New User: Navigating to Profile Completion Screen');
           navigation.navigate('EscollirUsuari');
         } else {
-          console.log('User Type:', result.user_type);
+          console.log('Existing User: Navigating to Main App Screen');
           navigation.navigate('Footer');
         }
       }
     } catch (error) {
-      console.error('Error communicating with backend:', error);
+      console.error('Error Communicating with Backend:', error);
       Alert.alert('Error', 'Something went wrong during Google Sign-In');
     }
   };
