@@ -8,6 +8,39 @@ from .models import Place
 from .serializers import PlaceSerializer
 from django.db.models import Q
 
+@swagger_auto_schema(
+    method='get',
+    description='Get all places grouped by country',
+    responses={200: openapi.Response(
+        description="List of places grouped by country",
+        examples={
+            "application/json": {
+                "USA": [
+                    {"id": 1, "name": "Statue of Liberty", "location": "New York", "category": "Historical"},
+                    {"id": 2, "name": "Yellowstone National Park", "location": "Wyoming", "category": "Nature"}
+                ],
+                "France": [
+                    {"id": 3, "name": "Eiffel Tower", "location": "Paris", "category": "Monument"}
+                ]
+            }
+        }
+    )}
+)
+@api_view(['GET'])
+def places_by_country(request):
+    # Query all places
+    places = Place.objects.all()
+    
+    # Group places by country
+    grouped_places = {}
+    for place in places:
+        country = place.country
+        if country not in grouped_places:
+            grouped_places[country] = []
+        grouped_places[country].append(PlaceSerializer(place).data)
+
+    return Response(grouped_places)
+
 # Lista de todos los lugares
 @swagger_auto_schema(
     method='get', 
