@@ -9,4 +9,5 @@ urlpatterns = [
     path('add/', views.add_place, name='add_place'),
     path('by-country/', views.places_by_country, name='places_by_country'),
     path('<int:id>/update-delete/', views.update_place, name='update_place'),
+    path('places/names/', views.places_names, name='get_places_names'),
 ]

@@ -5,6 +5,7 @@ import Home from '../screens/Home';
 import Visits from '../screens/Visits';
 import BucketList from '../screens/BucketList';
 import Compare from '../screens/Compare';
+import Monuments from '../screens/Monuments';
 import { COLORS } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -37,7 +38,7 @@ const Footer = () => {
                     />
                 ),
             }} />
-            <Tab.Screen name="Visits" component={Visits} options={{
+            <Tab.Screen name="Visits" component={Monuments} options={{
                 tabBarIcon: ({ focused }) => (
                     <MaterialCommunityIcons
                         name="eiffel-tower"

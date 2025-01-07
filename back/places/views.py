@@ -5,8 +5,19 @@ from django.http import JsonResponse
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from .models import Place
-from .serializers import PlaceSerializer
+from .serializers import PlaceSerializer, PlaceIdNameSerializer
 from django.db.models import Q
+
+@swagger_auto_schema(
+    method='get',
+    description='Get all places names and ids',
+    responses={200: PlaceIdNameSerializer(many=True)}
+)
+@api_view(['GET'])
+def places_names(request):
+    places = Place.objects.all()
+    serializer = PlaceIdNameSerializer(places, many=True)
+    return JsonResponse(serializer.data, safe=False)
 
 @swagger_auto_schema(
     method='get',

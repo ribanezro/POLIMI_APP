@@ -11,6 +11,7 @@ const COLORS = {
 
 
     highlighter: "#90ee90",
+    gold: '#FFC107',
 
 
     white: "#ffffff",

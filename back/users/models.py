@@ -13,3 +13,16 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class BucketList(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="bucket_list")
+    place = models.ForeignKey('places.Place', on_delete=models.CASCADE)
+    added_at = models.DateTimeField(auto_now_add=True)
+    visited = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'place')  # Ensure no duplicate places for the same user
+
+    def __str__(self):
+        return f"{self.user.username} - {self.place.name} ({'Visited' if self.visited else 'Not Visited'})"
