@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   FlatList,
   KeyboardAvoidingView,
+  SafeAreaView,
   Platform,
   Image,
   Alert,
@@ -64,7 +65,7 @@ const AddVisit = ({ route, navigation }) => {
       const filtered = monuments.filter((monument) =>
         monument.name.toLowerCase().includes(text.toLowerCase())
       );
-      setFilteredMonuments(filtered); // Show all results
+      setFilteredMonuments(filtered);
       setDropdownVisible(true);
     }
   };
@@ -76,13 +77,24 @@ const AddVisit = ({ route, navigation }) => {
   };
 
   const handlePhotoSelection = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    });
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+      });
 
-    if (!result.cancelled) {
-      setPhoto(result.uri);
+      if (!result.canceled) {
+        const imageUri = result.assets ? result.assets[0].uri : result.uri;
+        setPhoto(imageUri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
     }
+  };
+
+  const handleDeletePhoto = () => {
+    setPhoto(null);
   };
 
   const handleSubmit = async () => {
@@ -107,36 +119,8 @@ const AddVisit = ({ route, navigation }) => {
     }
   };
 
-  const renderStars = () => {
-    return Array.from({ length: 5 }, (_, index) => (
-      <TouchableOpacity
-        key={index}
-        onPress={() => setRating(index + 1)}
-        style={styles.starButton}
-      >
-        <Ionicons
-          name="star"
-          size={32}
-          color={index < rating ? "gold" : COLORS.secondary}
-        />
-      </TouchableOpacity>
-    ));
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={COLORS.secondary} />
-        <Text style={styles.loadingText}>Loading data...</Text>
-      </View>
-    );
-  }
-
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+    <SafeAreaView style={styles.container}>
       <View style={styles.innerContainer}>
         <Text style={styles.title}>Add a Visit</Text>
         <TextInput
@@ -161,10 +145,48 @@ const AddVisit = ({ route, navigation }) => {
             />
           </View>
         )}
+
+        {selectedPlace && (
+          <View style={styles.visitedContainer}>
+            <Text style={styles.visitedText}>You've visited</Text>
+            <View style={styles.visitedDetails}>
+              <Image
+                source={{
+                  uri: selectedPlace.image_url.replace(
+                    /places\/.*?\/photos\//,
+                    ""
+                  ),
+                }}
+                style={styles.visitedImage}
+              />
+              <View style={styles.visitedTextContainer}>
+                <Text style={styles.placeName}>{selectedPlace.name}</Text>
+                <Text style={styles.placeLocation}>
+                  {selectedPlace.city}, {selectedPlace.country}
+                </Text>
+              </View>
+            </View>
+          </View>
+        )}
+
         <View style={styles.ratingContainer}>
           <Text style={styles.ratingText}>Rating:</Text>
-          <View style={styles.starsContainer}>{renderStars()}</View>
+          <View style={styles.starsContainer}>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => setRating(index + 1)}
+              >
+                <Ionicons
+                  name="star"
+                  size={32}
+                  color={index < rating ? "gold" : COLORS.lightGray}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
+
         <TextInput
           style={styles.textBox}
           placeholder="Write your review"
@@ -172,17 +194,27 @@ const AddVisit = ({ route, navigation }) => {
           onChangeText={setReview}
           multiline
         />
-        {photo && <Image source={{ uri: photo }} style={styles.photoPreview} />}
+
+        {photo && (
+          <View style={styles.photoContainer}>
+            <Image source={{ uri: photo }} style={styles.photoPreview} />
+            <TouchableOpacity onPress={handleDeletePhoto}>
+              <Ionicons name="trash" size={24} color={COLORS.secondary} />
+            </TouchableOpacity>
+          </View>
+        )}
+
         <TouchableOpacity style={styles.photoButton} onPress={handlePhotoSelection}>
           <Text style={styles.photoButtonText}>
             {photo ? "Change Photo" : "Add Photo"}
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitButtonText}>Add Visit</Text>
         </TouchableOpacity>
       </View>
-    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 };
 
@@ -195,15 +227,11 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 16,
-    color: COLORS.secondary,
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
   },
   searchBar: {
     borderColor: COLORS.secondary,
@@ -224,24 +252,48 @@ const styles = StyleSheet.create({
   dropdownItem: {
     padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.tertiary,
+    borderBottomColor: COLORS.lightGray,
   },
   dropdownText: {
     color: COLORS.black,
   },
+  visitedContainer: {
+    marginVertical: 20,
+  },
+  visitedText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    color: COLORS.black,
+  },
+  visitedDetails: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  visitedImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  visitedTextContainer: {
+    flex: 1,
+  },
+  placeName: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: COLORS.black,
+  },
+  placeLocation: {
+    fontSize: 14,
+    color: COLORS.gray,
+  },
+  ratingContainer: {
+    marginBottom: 20,
+  },
   starsContainer: {
     flexDirection: "row",
     justifyContent: "center",
-    marginBottom: 10,
-  },
-  starButton: {
-    marginHorizontal: 5,
-    color: COLORS.secondary,
-  },
-  ratingText: {
-    fontSize: 18,
-    color: COLORS.black,
-    marginBottom: 10,
   },
   textBox: {
     borderColor: COLORS.secondary,
@@ -253,12 +305,17 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginBottom: 20,
   },
-  photoPreview: {
-    width: 200,
-    height: 200,
-    borderRadius: 8,
-    alignSelf: "center",
+  photoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 10,
+  },
+  photoPreview: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+    marginRight: 10,
   },
   photoButton: {
     backgroundColor: COLORS.tertiary,
@@ -280,12 +337,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: COLORS.white,
     fontSize: 16,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
   },
 });
 
