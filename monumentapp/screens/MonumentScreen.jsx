@@ -27,10 +27,7 @@ const PlaceDetails = ({ route, navigation }) => {
   console.log('Processed Image URL:', processedImageUrl);
 
   const handleAddVisit = () => {
-    navigation.navigate('AddVisit', {
-      placeId: place.id,
-      placeName: place.name,
-    });
+    navigation.navigate('AddVisit', { placeId: place.id });
   };
 
   const handleAddToFavorites = () => {

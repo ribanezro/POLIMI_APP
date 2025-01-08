@@ -5,59 +5,83 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
   FlatList,
+  KeyboardAvoidingView,
+  Platform,
   Image,
-  ScrollView,
   Alert,
 } from "react-native";
 import { COLORS, SIZES } from "../constants/theme";
-import { AirbnbRating } from "react-native-ratings";
 import * as ImagePicker from "expo-image-picker";
-import monumentList from "../services/Monuments";
+import { MonumentsListNames } from "../services/Monuments";
+import { Ionicons } from "@expo/vector-icons";
 
 const AddVisit = ({ route, navigation }) => {
-  const { placeId } = route.params; // Only receiving placeId
+  const { placeId } = route.params;
   const [searchText, setSearchText] = useState("");
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [rating, setRating] = useState(0);
   const [review, setReview] = useState("");
-  const [photos, setPhotos] = useState([]);
-  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [photo, setPhoto] = useState(null);
   const [monuments, setMonuments] = useState([]);
+  const [filteredMonuments, setFilteredMonuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
 
-  // Fetch monuments and populate place name if placeId is provided
   useEffect(() => {
     const fetchMonuments = async () => {
-      console.log("Fetching monuments...");
-      const fetchedMonuments = await monumentList();
-      setMonuments(fetchedMonuments);
-      console.log("Monuments:", fetchedMonuments);
+      try {
+        console.log("Fetching monuments...");
+        const fetchedMonuments = await MonumentsListNames();
+        setMonuments(fetchedMonuments);
 
-      if (placeId) {
-        const matchedMonument = fetchedMonuments.find(
-          (monument) => monument.id === placeId
-        );
-        if (matchedMonument) {
-          setSearchText(matchedMonument.name);
-          setSelectedPlace(matchedMonument);
+        if (placeId) {
+          const matchedMonument = fetchedMonuments.find(
+            (monument) => monument.id === placeId
+          );
+          if (matchedMonument) {
+            setSearchText(matchedMonument.name);
+            setSelectedPlace(matchedMonument);
+          }
         }
+      } catch (error) {
+        console.error("Error fetching monuments:", error);
+        Alert.alert("Error", "Failed to load data. Please try again.");
+      } finally {
+        setLoading(false);
       }
     };
     fetchMonuments();
   }, [placeId]);
 
-  const handleRating = (ratingValue) => {
-    setRating(ratingValue);
+  const handleSearch = (text) => {
+    setSearchText(text);
+    if (text.trim() === "") {
+      setFilteredMonuments([]);
+      setDropdownVisible(false);
+    } else {
+      const filtered = monuments.filter((monument) =>
+        monument.name.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredMonuments(filtered); // Show all results
+      setDropdownVisible(true);
+    }
+  };
+
+  const handleSelect = (monument) => {
+    setSearchText(monument.name);
+    setSelectedPlace(monument);
+    setDropdownVisible(false);
   };
 
   const handlePhotoSelection = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsMultipleSelection: true,
     });
 
     if (!result.cancelled) {
-      setPhotos([...photos, result.uri]);
+      setPhoto(result.uri);
     }
   };
 
@@ -67,7 +91,7 @@ const AddVisit = ({ route, navigation }) => {
       placeName: selectedPlace?.name || searchText,
       rating,
       review,
-      photos,
+      photo,
     };
 
     try {
@@ -75,168 +99,193 @@ const AddVisit = ({ route, navigation }) => {
         "https://monumentapp-73e8e79b6ee2.herokuapp.com/api/monuments",
         data
       );
-      Alert.alert("Éxito", "Monumento añadido correctamente");
+      Alert.alert("Success", "Monument added successfully.");
       navigation.goBack();
     } catch (error) {
-      console.error("Error al añadir el monumento:", error);
-      Alert.alert(
-        "Error",
-        "No se pudo añadir el monumento. Inténtalo de nuevo."
-      );
+      console.error("Error adding the monument:", error);
+      Alert.alert("Error", "Failed to add the monument. Please try again.");
     }
   };
 
-  const filteredMonuments = monuments.filter((monument) =>
-    monument.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const renderStars = () => {
+    return Array.from({ length: 5 }, (_, index) => (
+      <TouchableOpacity
+        key={index}
+        onPress={() => setRating(index + 1)}
+        style={styles.starButton}
+      >
+        <Ionicons
+          name="star"
+          size={32}
+          color={index < rating ? "gold" : COLORS.secondary}
+        />
+      </TouchableOpacity>
+    ));
+  };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.secondary} />
+        <Text style={styles.loadingText}>Loading data...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.container}>
-        {/* Search bar with dropdown */}
-        <View>
-          <TextInput
-            style={styles.searchBar}
-            placeholder="Buscar lugar"
-            value={searchText}
-            onChangeText={(text) => {
-              setSearchText(text);
-              setDropdownVisible(true);
-            }}
-          />
-          {dropdownVisible && searchText.length > 0 && (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <View style={styles.innerContainer}>
+        <Text style={styles.title}>Add a Visit</Text>
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search for a place"
+          value={searchText}
+          onChangeText={handleSearch}
+        />
+        {dropdownVisible && (
+          <View style={styles.dropdown}>
             <FlatList
               data={filteredMonuments}
-              keyExtractor={(item, index) => index.toString()}
+              keyExtractor={(item) => item.id.toString()}
               renderItem={({ item }) => (
                 <TouchableOpacity
-                  onPress={() => {
-                    setSearchText(item.name);
-                    setSelectedPlace(item);
-                    setDropdownVisible(false);
-                  }}
+                  style={styles.dropdownItem}
+                  onPress={() => handleSelect(item)}
                 >
-                  <Text style={styles.dropdownItem}>{item.name}</Text>
+                  <Text style={styles.dropdownText}>{item.name}</Text>
                 </TouchableOpacity>
               )}
-              style={styles.dropdown}
             />
-          )}
+          </View>
+        )}
+        <View style={styles.ratingContainer}>
+          <Text style={styles.ratingText}>Rating:</Text>
+          <View style={styles.starsContainer}>{renderStars()}</View>
         </View>
-
-        {/* Rating */}
-        <AirbnbRating
-          count={5}
-          reviews={[]}
-          defaultRating={rating}
-          size={SIZES.large}
-          onFinishRating={handleRating}
-        />
-
-        {/* Review Text Box */}
         <TextInput
           style={styles.textBox}
-          placeholder="Escribe tu reseña"
+          placeholder="Write your review"
           value={review}
           onChangeText={setReview}
           multiline
         />
-
-        {/* Photo Selector */}
+        {photo && <Image source={{ uri: photo }} style={styles.photoPreview} />}
         <TouchableOpacity style={styles.photoButton} onPress={handlePhotoSelection}>
-          <Text style={styles.photoButtonText}>Seleccionar Fotos</Text>
+          <Text style={styles.photoButtonText}>
+            {photo ? "Change Photo" : "Add Photo"}
+          </Text>
         </TouchableOpacity>
-        <FlatList
-          data={photos}
-          keyExtractor={(item, index) => index.toString()}
-          horizontal
-          renderItem={({ item }) => (
-            <Image source={{ uri: item }} style={styles.photo} />
-          )}
-          style={styles.photoList}
-        />
-
-        {/* Submit Button */}
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>Añadir Monumento</Text>
+          <Text style={styles.submitButtonText}>Add Visit</Text>
         </TouchableOpacity>
       </View>
-    </ScrollView>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: SIZES.base,
-  },
   container: {
     flex: 1,
     backgroundColor: COLORS.primary,
-    padding: SIZES.base,
-    marginTop: SIZES.xxxlarge * 2,
+  },
+  innerContainer: {
+    flex: 1,
+    padding: 20,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: COLORS.secondary,
   },
   searchBar: {
     borderColor: COLORS.secondary,
     borderWidth: 1,
-    borderRadius: SIZES.base,
-    padding: SIZES.small,
-    marginBottom: SIZES.base,
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
     backgroundColor: COLORS.white,
   },
   dropdown: {
+    maxHeight: 150,
     backgroundColor: COLORS.white,
     borderColor: COLORS.secondary,
     borderWidth: 1,
-    borderRadius: SIZES.base,
-    marginTop: SIZES.base / 2,
+    borderRadius: 8,
+    marginBottom: 10,
   },
   dropdownItem: {
-    padding: SIZES.small,
+    padding: 10,
     borderBottomWidth: 1,
-    borderBottomColor: COLORS.secondary,
+    borderBottomColor: COLORS.tertiary,
+  },
+  dropdownText: {
+    color: COLORS.black,
+  },
+  starsContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  starButton: {
+    marginHorizontal: 5,
+    color: COLORS.secondary,
+  },
+  ratingText: {
+    fontSize: 18,
+    color: COLORS.black,
+    marginBottom: 10,
   },
   textBox: {
     borderColor: COLORS.secondary,
     borderWidth: 1,
-    borderRadius: SIZES.base,
-    padding: SIZES.small,
-    marginVertical: SIZES.base,
+    borderRadius: 8,
+    padding: 10,
     backgroundColor: COLORS.white,
     height: 100,
     textAlignVertical: "top",
+    marginBottom: 20,
+  },
+  photoPreview: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+    alignSelf: "center",
+    marginBottom: 10,
   },
   photoButton: {
     backgroundColor: COLORS.tertiary,
-    padding: SIZES.small,
-    borderRadius: SIZES.base,
+    padding: 10,
+    borderRadius: 8,
     alignItems: "center",
-    marginBottom: SIZES.base,
+    marginBottom: 20,
   },
   photoButtonText: {
     color: COLORS.white,
-    fontSize: SIZES.medium,
-  },
-  photoList: {
-    marginBottom: SIZES.base,
-  },
-  photo: {
-    width: 100,
-    height: 100,
-    borderRadius: SIZES.base,
-    marginRight: SIZES.base,
+    fontSize: 16,
   },
   submitButton: {
     backgroundColor: COLORS.secondary,
-    padding: SIZES.small,
-    borderRadius: SIZES.base,
+    padding: 10,
+    borderRadius: 8,
     alignItems: "center",
   },
   submitButtonText: {
     color: COLORS.white,
-    fontSize: SIZES.medium,
+    fontSize: 16,
+  },
+  title: {
+    fontSize: 24,
     fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
   },
 });
 

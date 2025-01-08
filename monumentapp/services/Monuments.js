@@ -7,6 +7,12 @@ export const MonumentsListByCountry = async () => {
     return data;
 }
 
+export const MonumentsListNames = async () => {
+    const response = await fetch(`${url}places/places/names/`);
+    const data = await response.json();
+    return data;
+}
+
 //Función para obtener la lista de monumentos
 export const monumentsList = async () => {
     console.log("Fetching monuments...");
