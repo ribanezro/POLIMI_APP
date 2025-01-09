@@ -87,9 +87,9 @@ def login_user(request):
     request_body=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'id_token': openapi.Schema(type=openapi.TYPE_STRING, description='Google ID token'),
+            'token': openapi.Schema(type=openapi.TYPE_STRING, description='Google ID token'),
         },
-        required=['id_token'],
+        required=['token'],
     ),
     operation_description='Authenticate or register a user using Google login',
     responses={
