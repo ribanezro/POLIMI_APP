@@ -74,9 +74,7 @@ TEMPLATES = [
 # Database
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://udo5v8129riehc:pd788b9b1df402afa736160cb501fcc4c5fe460d0c08203e65bf73fbaa15439c6@c9uss87s9bdb8n.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/dd5jh77oj9q6ia',
-        conn_max_age=600,
-        ssl_require=True
+        default='postgres://uu31n0bpvhf5:p763ae87599bbdece79a130eb35d5d7dd360dc48a30ba1205ddf0146a2abd60c1@ccpa7stkruda3o.cluster-czrs8kj4isg7.us-east-1.rds.amazonaws.com:5432/d3dt64nr52f5ag'
     )
 }
 
