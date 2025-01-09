@@ -6,6 +6,8 @@ class CustomUser(AbstractUser):
     password = models.CharField(max_length=30, null=True)
     email = models.EmailField(unique=True)
     bio = models.TextField(blank=True, null=True)  
+    first_name = models.CharField(max_length=30, blank=True, null=True)
+    last_name = models.CharField(max_length=30, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
 
     USERNAME_FIELD = 'email'
