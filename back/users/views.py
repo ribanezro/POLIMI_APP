@@ -94,6 +94,7 @@ def login_user(request):
 @api_view(['POST'])
 def google_login_register(request):
     token = request.data.get('token')
+    logger.info(f"Token: {token}")
     if not token:
         return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
@@ -109,10 +110,7 @@ def google_login_register(request):
         if not created: 
             user = CustomUser.objects.create(email=email, username=email)
         elif created:
-            user.given_name = given_name
-            user.family_name = family_name
-            user.profile_picture = picture
-            user.save()
+            user = CustomUser.objects.get(email=email)
         serialized_user = UserSerializer(user).data
         return Response({'message': 'User logged in' if not created else 'New user created', 'user': serialized_user, 'is_profile_complete': not created}, status=status.HTTP_200_OK)
     except ValueError:
