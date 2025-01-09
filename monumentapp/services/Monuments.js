@@ -15,11 +15,14 @@ export const MonumentsListNames = async () => {
 
 //Función para obtener la lista de monumentos
 export const monumentsList = async () => {
-    console.log("Fetching monuments...");
     const response = await fetch(`${url}places/`);
-    console.log("Response:", response);
     const data = await response.json();
     return data;
 }
 
+export const placeDetails = async (placeId) => {
+    const response = await fetch(`${url}places/${placeId}/`);
+    const data = await response.json();
+    return data;
+}
 

@@ -6,6 +6,7 @@ import Visits from '../screens/Visits';
 import BucketList from '../screens/BucketList';
 import Compare from '../screens/Compare';
 import Monuments from '../screens/Monuments';
+import MapScreen from '../screens/Map';
 import { COLORS } from '../constants/theme';
 
 const Tab = createBottomTabNavigator();
@@ -42,6 +43,15 @@ const Footer = () => {
                 tabBarIcon: ({ focused }) => (
                     <MaterialCommunityIcons
                         name="eiffel-tower"
+                        size={30}
+                        color={focused ? COLORS.tertiary : COLORS.white}
+                    />
+                ),
+            }} />
+            <Tab.Screen name="Map" component={MapScreen} options={{
+                tabBarIcon: ({ focused }) => (
+                    <MaterialIcons
+                        name="map"
                         size={30}
                         color={focused ? COLORS.tertiary : COLORS.white}
                     />

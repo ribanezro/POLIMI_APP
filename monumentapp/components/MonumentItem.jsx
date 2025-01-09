@@ -7,7 +7,7 @@ const MonumentItem = ({ monument }) => {
   const navigation = useNavigation(); // Hook to navigate
 
   const handlePress = () => {
-    navigation.navigate('PlaceDetails', { place: monument }); // Navigate to PlaceDetails with monument data
+    navigation.navigate('PlaceDetails', { place: monument.id }); // Navigate to PlaceDetails with monument data
   };
 
   return (

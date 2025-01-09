@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,40 +9,77 @@ import {
   Alert,
   Linking,
   SafeAreaView,
-} from 'react-native';
-import { FontAwesome } from '@expo/vector-icons'; // For icons like star and heart
-import { COLORS } from '../constants/theme';
+  ActivityIndicator,
+} from "react-native";
+import { FontAwesome } from "@expo/vector-icons"; // For icons like star and heart
+import { COLORS } from "../constants/theme";
+import { placeDetails } from "../services/Monuments"; // Import the function to fetch place details
 
 const PlaceDetails = ({ route, navigation }) => {
-  const { place } = route.params; // Get place details from navigation params
+  const { placeId } = route.params; // Get the place ID from navigation params
+  console.log(placeId);
+  const [place, setPlace] = useState(null); // State to hold place details
+  const [loading, setLoading] = useState(true); // Loading state
 
-  console.log('Place:', place);
+  useEffect(() => {
+    const fetchPlaceDetails = async () => {
+      try {
+        const fetchedPlace = await placeDetails(placeId); // Fetch place details
+        setPlace(fetchedPlace);
+      } catch (error) {
+        console.error("Error fetching place details:", error);
+        Alert.alert("Error", "Failed to load place details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPlaceDetails();
+  }, [placeId]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={COLORS.secondary} />
+        <Text style={styles.loadingText}>Loading place details...</Text>
+      </View>
+    );
+  }
+
+  if (!place) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Failed to load place details.</Text>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.goBackButtonError}
+        >
+          <Text style={styles.goBackText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   // Process image_url to remove unwanted substring
-  const processedImageUrl = place.image_url.replace(
-    /places\/.*?\/photos\//,
-    ''
-  );
-
-  console.log('Processed Image URL:', processedImageUrl);
+  const processedImageUrl = place.image_url.replace(/places\/.*?\/photos\//, "");
 
   const handleAddVisit = () => {
-    navigation.navigate('AddVisit', { placeId: place.id });
+    navigation.navigate("AddVisit", { placeId: place.id });
   };
 
   const handleAddToFavorites = () => {
     Alert.alert(
-      'Add to Favorites',
+      "Add to Favorites",
       `You have added "${place.name}" to your favorites!`,
-      [{ text: 'OK', onPress: () => console.log(`Favorited: ${place.name}`) }]
+      [{ text: "OK", onPress: () => console.log(`Favorited: ${place.name}`) }]
     );
   };
 
   const openInGoogleMaps = () => {
-    const [latitude, longitude] = place.coordinates.split(',');
+    const [latitude, longitude] = place.coordinates.split(",");
     const url = `https://www.google.com/maps?q=${latitude},${longitude}`;
     Linking.openURL(url).catch(() =>
-      Alert.alert('Error', 'Failed to open Google Maps')
+      Alert.alert("Error", "Failed to open Google Maps")
     );
   };
 
@@ -76,8 +113,13 @@ const PlaceDetails = ({ route, navigation }) => {
           <Text style={styles.title}>{place.name}</Text>
           <View style={styles.ratingContainer}>
             <FontAwesome name="star" size={20} color={COLORS.gold} />
-            <Text style={styles.rating}>{place.rating ? place.rating : 'N/A'}</Text>
-            <TouchableOpacity onPress={handleAddToFavorites} style={styles.favorites}>
+            <Text style={styles.rating}>
+              {place.rating ? place.rating : "N/A"}
+            </Text>
+            <TouchableOpacity
+              onPress={handleAddToFavorites}
+              style={styles.favorites}
+            >
               <FontAwesome name="heart" size={24} color={COLORS.gold} />
             </TouchableOpacity>
           </View>
@@ -92,7 +134,11 @@ const PlaceDetails = ({ route, navigation }) => {
         {place.address && (
           <TouchableOpacity onPress={openInGoogleMaps}>
             <Text style={styles.address}>
-              <FontAwesome name="map-marker" size={22} color={COLORS.secondary} />{' '}
+              <FontAwesome
+                name="map-marker"
+                size={22}
+                color={COLORS.secondary}
+              />{" "}
               {place.address}
             </Text>
           </TouchableOpacity>
@@ -110,54 +156,86 @@ const PlaceDetails = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: "#f5f5f5",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: COLORS.secondary,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    color: COLORS.gray,
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  goBackButtonError: {
+    backgroundColor: COLORS.secondary,
+    padding: 10,
+    borderRadius: 5,
+  },
+  goBackText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: "bold",
   },
   imageContainer: {
-    position: 'relative',
-    width: '100%',
+    position: "relative",
+    width: "100%",
     height: 325,
   },
   image: {
-    width: '100%',
-    height: '100%',
+    width: "100%",
+    height: "100%",
   },
   goBackButton: {
-    position: 'absolute',
-    top: 50, // Adjust based on SafeAreaView
+    position: "absolute",
+    top: 50,
     left: 20,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+    backgroundColor: "rgba(0, 0, 0, 0.5)", // Semi-transparent background
     borderRadius: 50,
     padding: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   noImage: {
-    width: '100%',
+    width: "100%",
     height: 250,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#e0e0e0',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#e0e0e0",
   },
   noImageText: {
-    color: '#888',
+    color: "#888",
     fontSize: 16,
   },
   header: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: "#ddd",
     marginBottom: 10,
   },
   title: {
     fontSize: 28,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     color: COLORS.tertiary,
     marginBottom: 10,
   },
   ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   rating: {
     fontSize: 18,
@@ -165,33 +243,33 @@ const styles = StyleSheet.create({
     marginLeft: 5,
   },
   favorites: {
-    marginLeft: 'auto',
+    marginLeft: "auto",
   },
   description: {
     fontSize: 16,
     margin: 20,
-    color: '#555',
+    color: "#555",
     lineHeight: 22,
   },
   address: {
     fontSize: 16,
     color: COLORS.tertiary,
-    textAlign: 'center',
+    textAlign: "center",
     marginVertical: 15,
-    textDecorationLine: 'underline',
+    textDecorationLine: "underline",
   },
   addButton: {
     backgroundColor: COLORS.secondary,
     padding: 15,
     marginHorizontal: 20,
     borderRadius: 10,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 20,
   },
   addButtonText: {
     fontSize: 18,
     color: COLORS.tertiary,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 
