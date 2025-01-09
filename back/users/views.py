@@ -8,9 +8,10 @@ from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.permissions import IsAdminUser
-from .models import CustomUser
+from .models import CustomUser, BucketList
 from .serializers import UserSerializer
 import logging
+from places.models import Place
 
 logger = logging.getLogger(__name__)
 
@@ -200,3 +201,78 @@ def get_user_details(request, user_id):
         return Response(serialized_user, status=status.HTTP_200_OK)
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+
+# Bucket List API
+
+@swagger_auto_schema(
+    method='get',
+    responses={200: 'List of all user bucket list'},
+)
+@api_view(['GET'])
+def user_bucket_list(request, user_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        bucket_list = BucketList.objects.filter(user=user)
+        return Response({'bucket_list ': bucket_list}, status=status.HTTP_200_OK)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+@swagger_auto_schema(
+    method='put',
+    descriptio='Complete item from user bucket list',
+    responses={200: 'Item completed successfully', 404: 'User or item not found'},
+)
+@api_view(['PUT'])
+def complete_bucket_list_item(request, item_id):
+    try:
+        item = BucketList.objects.get(id=item_id)
+        item.visited = True
+        item.save()
+        return Response({'message': 'Item completed successfully'}, status=status.HTTP_200_OK)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    except BucketList.DoesNotExist:
+        return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@swagger_auto_schema(
+    method='delete',
+    responses={200: 'Item deleted successfully', 404: 'User or item not found'},
+)
+@api_view(['DELETE'])
+def delete_bucket_list_item(request, user_id, item_id):
+    try:
+        item = BucketList.objects.get(id=item_id)
+        item.delete()
+        return Response({'message': 'Item deleted successfully'}, status=status.HTTP_200_OK)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    except BucketList.DoesNotExist:
+        return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'added_at': openapi.Schema(type=openapi.TYPE_STRING, description='Item added date'),
+            'visited': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Item status'),
+        },
+        required=['name', 'description'],
+    ),
+    responses={200: 'Item added successfully', 404: 'User not found'},
+)
+@api_view(['POST'])
+def add_bucket_list_item(request, user_id, place_id):
+    try:
+        user = CustomUser.objects.get(id=user_id)
+        place = Place.objects.get(id=place_id)
+        data = request.data
+        added_at = data.get('added_at')
+        visited = data.get('visited', False)
+        bucket_list_item = BucketList(user=user, place=place, added_at=added_at, visited=visited)
+        bucket_list_item.save()
+        return Response({'message': 'Item added successfully'}, status=status.HTTP_200_OK)
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
