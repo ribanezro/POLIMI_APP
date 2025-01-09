@@ -241,13 +241,11 @@ def complete_bucket_list_item(request, item_id):
     responses={200: 'Item deleted successfully', 404: 'User or item not found'},
 )
 @api_view(['DELETE'])
-def delete_bucket_list_item(request, user_id, item_id):
+def delete_bucket_list_item(request, item_id):
     try:
         item = BucketList.objects.get(id=item_id)
         item.delete()
         return Response({'message': 'Item deleted successfully'}, status=status.HTTP_200_OK)
-    except CustomUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except BucketList.DoesNotExist:
         return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
     
