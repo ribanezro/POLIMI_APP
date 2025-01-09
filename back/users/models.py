@@ -1,7 +1,5 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
-
-
 
 class CustomUser(AbstractUser):
     username = models.CharField(max_length=150, unique=True, null=True)
@@ -11,6 +9,9 @@ class CustomUser(AbstractUser):
     given_name = models.CharField(max_length=30, null=True)
     family_name = models.CharField(max_length=30, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
 
     def __str__(self):
         return self.email
