@@ -275,3 +275,18 @@ def add_bucket_list_item(request, user_id, place_id):
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     
+@swagger_auto_schema(
+    method='get',
+    responses={200: 'Check if item is on user bucket list'},
+)
+@api_view(['GET'])
+def is_on_bucket_list(userId, placeId):
+    try:
+        user = CustomUser.objects.get(id=userId)
+        place = Place.objects.get(id=placeId)
+        return BucketList.objects.filter(user=user, place=place).exists()
+    except CustomUser.DoesNotExist:
+        return False
+    except Place.DoesNotExist:
+        return False
+    

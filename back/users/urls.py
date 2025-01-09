@@ -13,4 +13,5 @@ urlpatterns = [
     path('bucketlist/complete/<int:item_id>/', complete_bucket_list_item, name='add_bucketlist'),
     path('bucketlist/add/<int:user_id>/<int:place_id>/', add_bucket_list_item, name='add_bucketlist'),
     path('bucketlist/delete/<int:item_id>/', delete_bucket_list_item, name='delete_bucketlist'),
+    path('bucketlist/<int:item_id>/<int:place_id>/', is_on_bucket_list, name='present_in_bucket_list'),
 ]
