@@ -104,8 +104,10 @@ def google_login_register(request):
         given_name = id_info.get('given_name', '')
         family_name = id_info.get('family_name', '')
         picture = id_info.get('picture', '')
-        user, created = CustomUser.objects.get_or_create(email=email, username=email)
-        if created:
+        created = CustomUser.objects.filter(email=email).exists()
+        if not created: 
+            user = CustomUser.objects.get_or_create(email=email)
+        elif created:
             user.given_name = given_name
             user.family_name = family_name
             user.profile_picture = picture
