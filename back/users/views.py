@@ -110,12 +110,15 @@ def google_login_register(request):
             return Response({'error': 'Invalid client ID'}, status=status.HTTP_403_FORBIDDEN)
 
         email = id_info.get('email')
-        name = id_info.get('name', '').split()[0]
+        first_name = id_info.get('given_name', '')
+        last_name = id_info.get('family_name', '')
         picture = id_info.get('picture', '')
 
         user, created = CustomUser.objects.get_or_create(email=email)
         if created:
-            user.username = name
+            user.username = email.split('@')[0]
+            user.first_name = first_name
+            user.last_name = last_name
             user.profile_picture = picture
             user.save()
             return Response({'message': 'New user created', 'user_id': user.id, 'is_profile_complete': False}, status=200)
