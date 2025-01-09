@@ -50,10 +50,7 @@ def register_user(request):
         if CustomUser.objects.filter(email=email).exists():
             return Response({'error': 'User already exists'}, status=status.HTTP_409_CONFLICT)
 
-        user = CustomUser.objects.create(
-            email=email,
-            password=password,
-        )
+        user = CustomUser.objects.create_user(email=email, password=password, username=email)
         serialized_user = UserSerializer(user).data
         return Response({'message': 'User registered successfully', 'user': serialized_user}, status=status.HTTP_200_OK)
     except Exception as e:
@@ -107,7 +104,7 @@ def google_login_register(request):
         given_name = id_info.get('given_name', '')
         family_name = id_info.get('family_name', '')
         picture = id_info.get('picture', '')
-        user, created = CustomUser.objects.get_or_create(email=email)
+        user, created = CustomUser.objects.get_or_create(email=email, username=email)
         if created:
             user.given_name = given_name
             user.family_name = family_name
