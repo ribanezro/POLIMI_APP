@@ -100,6 +100,7 @@ def login_user(request):
 @api_view(['POST'])
 def google_login_register(request):
     token = request.data.get('token')
+    print(token)
     if not token:
         return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
