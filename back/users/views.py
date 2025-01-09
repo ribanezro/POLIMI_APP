@@ -10,6 +10,9 @@ from drf_yasg import openapi
 from rest_framework.permissions import IsAdminUser
 from .models import CustomUser
 from .serializers import UserSerializer
+import logging
+
+logger = logging.getLogger(__name__)
 
 GOOGLE_CLIENT_IDS = [
     "119778560119-vdasr532tr43s0uoggbtqbo8a8gg6svg.apps.googleusercontent.com", #default web
@@ -32,19 +35,27 @@ GOOGLE_CLIENT_IDS = [
 )
 @api_view(['POST'])
 def register_user(request):
-    data = request.data
-    email = data.get('email')
-    password = data.get('password')
-    repeat_password = data.get('repeat_password')
-    if not email or not password or not repeat_password:
-        return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
-    if password != repeat_password:
-        return Response({'error': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
-    if CustomUser.objects.filter(email=email).exists():
-        return Response({'error': 'User already exists'}, status=status.HTTP_409_CONFLICT)
-    user = CustomUser.objects.create_user(email=email, password=password, username=email.split('@')[0])
-    serialized_user = UserSerializer(user).data
-    return Response({'message': 'User registered successfully', 'user': serialized_user}, status=status.HTTP_200_OK)
+    try:
+        data = request.data
+        email = data.get('email')
+        password = data.get('password')
+        repeat_password = data.get('repeat_password')
+
+        if not email or not password or not repeat_password:
+            return Response({'error': 'All fields are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if password != repeat_password:
+            return Response({'error': 'Passwords do not match'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if CustomUser.objects.filter(email=email).exists():
+            return Response({'error': 'User already exists'}, status=status.HTTP_409_CONFLICT)
+
+        user = CustomUser.objects.create_user(email=email, password=password, username=email.split('@')[0])
+        serialized_user = UserSerializer(user).data
+        return Response({'message': 'User registered successfully', 'user': serialized_user}, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error in register_user: {e}")
+        return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @swagger_auto_schema(
     method='post',
