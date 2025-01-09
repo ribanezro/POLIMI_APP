@@ -101,45 +101,27 @@ def login_user(request):
 def google_login_register(request):
     token = request.data.get('token')
     if not token:
-        return Response({'error': 'Token is required'}, status=400)
+        return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        # Verify the token
-        id_info = id_token.verify_oauth2_token(
-            token, google_requests.Request()
-        )
+        id_info = id_token.verify_oauth2_token(token, google_requests.Request())
+        if id_info['aud'] not in GOOGLE_CLIENT_IDS:
+            return Response({'error': 'Invalid client ID'}, status=status.HTTP_403_FORBIDDEN)
 
-        # Validate the token's audience
-        if id_info['aud'] not in settings.GOOGLE_CLIENT_IDS:
-            return Response({'error': 'Invalid client ID'}, status=403)
-
-        # Extract user info
         email = id_info.get('email')
-        name = id_info.get('name', '').split()[0]  # Default username suggestion
+        name = id_info.get('name', '').split()[0]
         picture = id_info.get('picture', '')
 
-        # Check or create the user
         user, created = CustomUser.objects.get_or_create(email=email)
-
         if created:
             user.username = name
             user.profile_picture = picture
             user.save()
-            return Response({
-                'message': 'New user created, profile completion required',
-                'user_id': user.id,
-                'is_profile_complete': False
-            }, status=200)
+            return Response({'message': 'New user created', 'user_id': user.id, 'is_profile_complete': False}, status=200)
         else:
-            return Response({
-                'message': 'User logged in successfully',
-                'user_id': user.id,
-                'is_profile_complete': True,
-                'username': user.username,
-                'bio': user.bio,
-            }, status=200)
-    except ValueError:
-        return Response({'error': 'Invalid token'}, status=400)
+            return Response({'message': 'User logged in', 'user_id': user.id, 'is_profile_complete': True}, status=200)
+    except ValueError as e:
+        return Response({'error': 'Invalid ID token'}, status=status.HTTP_400_BAD_REQUEST)
     
 @swagger_auto_schema(
     method='get',
