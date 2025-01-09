@@ -92,50 +92,29 @@ def login_user(request):
     responses={200: 'Google login successful', 400: 'Invalid ID token'},
 )
 @api_view(['POST'])
-@api_view(['POST'])
 def google_login_register(request):
     token = request.data.get('token')
     if not token:
         return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
-        # Verify the Google token
         id_info = id_token.verify_oauth2_token(token, google_requests.Request())
         if id_info['aud'] not in GOOGLE_CLIENT_IDS:
             return Response({'error': 'Invalid client ID'}, status=status.HTTP_403_FORBIDDEN)
-
         email = id_info.get('email')
         given_name = id_info.get('given_name', '')
         family_name = id_info.get('family_name', '')
         picture = id_info.get('picture', '')
-
-        # Check if the user already exists
-        user, created = CustomUser.objects.get_or_create(email=email)
-
-        if created:
-            # New user created
-            user.username = email
+        created = CustomUser.objects.filter(email=email).exists()
+        logger.info(f"User {email} is {created}")
+        if not created: 
+            user = CustomUser.objects.create(email=email, username=email)
+        elif created:
             user.given_name = given_name
             user.family_name = family_name
             user.profile_picture = picture
             user.save()
-            message = 'New user created'
-        else:
-            # Existing user, update fields if necessary
-            user.given_name = given_name
-            user.family_name = family_name
-            user.profile_picture = picture
-            user.save()
-            message = 'User logged in'
-
         serialized_user = UserSerializer(user).data
-        return Response(
-            {
-                'message': message,
-                'user': serialized_user,
-                'is_profile_complete': not created,
-            },
-            status=status.HTTP_200_OK,
-        )
+        return Response({'message': 'User logged in' if not created else 'New user created', 'user': serialized_user, 'is_profile_complete': not created}, status=status.HTTP_200_OK)
     except ValueError:
         return Response({'error': 'Invalid ID token'}, status=status.HTTP_400_BAD_REQUEST)
 
