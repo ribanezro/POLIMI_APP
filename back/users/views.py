@@ -126,6 +126,8 @@ def google_login_register(request):
         type=openapi.TYPE_OBJECT,
         properties={
             'username': openapi.Schema(type=openapi.TYPE_STRING, description='New username'),
+            'given_name': openapi.Schema(type=openapi.TYPE_STRING, description='User first name'),
+            'family_name': openapi.Schema(type=openapi.TYPE_STRING, description='User last name'),
             'bio': openapi.Schema(type=openapi.TYPE_STRING, description='User bio'),
             'profile_picture': openapi.Schema(type=openapi.TYPE_FILE, description='Profile picture'),
         },
