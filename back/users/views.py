@@ -101,14 +101,14 @@ def google_login_register(request):
         if id_info['aud'] not in GOOGLE_CLIENT_IDS:
             return Response({'error': 'Invalid client ID'}, status=status.HTTP_403_FORBIDDEN)
         email = id_info.get('email')
-        first_name = id_info.get('given_name', '')
-        last_name = id_info.get('family_name', '')
+        given_name = id_info.get('given_name', '')
+        family_name = id_info.get('family_name', '')
         picture = id_info.get('picture', '')
         user, created = CustomUser.objects.get_or_create(email=email)
         if created:
             user.username = email.split('@')[0]
-            user.first_name = first_name
-            user.last_name = last_name
+            user.given_name = given_name
+            user.family_name = family_name
             user.profile_picture = picture
             user.save()
         serialized_user = UserSerializer(user).data
@@ -144,6 +144,8 @@ def user_profile(request, user_id):
     elif request.method == 'PUT':
         data = request.data
         user.username = data.get('username', user.username)
+        user.given_name = data.get('given_name', user.given_name)
+        user.family_name = data.get('family_name', user.family_name)
         user.bio = data.get('bio', user.bio)
         if 'profile_picture' in request.FILES:
             user.profile_picture = request.FILES['profile_picture']
