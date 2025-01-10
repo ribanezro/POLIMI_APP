@@ -56,23 +56,7 @@ def add_visit(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# Borrar o actualizar una visita
-@swagger_auto_schema(
-    method='get',
-    description='Get a visit',
-    responses={200: UserVisitSerializer}
-)
 
-@api_view(['GET'])
-def visit_detail(request, visit_id):
-    try:
-        print("visit_id", visit_id)
-        visit = UserVisit.objects.get(id=visit_id)
-        print("visit", visit)
-        serializer = UserVisitSerializer(visit)
-        return Response(serializer.data)
-    except UserVisit.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
     
 @swagger_auto_schema(
     method='get',
@@ -85,4 +69,16 @@ def user_place_visits(request, user_id, place_id):
     place = Place.objects.get(id=place_id)
     visits = UserVisit.objects.filter(user=user, place=place)
     serializer = UserVisitSerializer(visits, many=True)
+    return Response(serializer.data)
+
+# Detalle de una visita
+@swagger_auto_schema(
+    method='get',
+    description='Get a visit',
+    responses={200: UserVisitSerializer}
+)
+@api_view(['GET'])
+def visit_detail(request, id):
+    visit = UserVisit.objects.get(id=id)
+    serializer = UserVisitSerializer(visit)
     return Response(serializer.data)
