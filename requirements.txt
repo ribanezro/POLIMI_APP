@@ -43,7 +43,6 @@ marshmallow==3.21.2
 multidict==6.0.5
 mypy-extensions==1.0.0
 numpy==1.26.4
-orjson==3.10.3
 packaging==23.2
 pandas==2.2.2
 pillow==10.3.0
