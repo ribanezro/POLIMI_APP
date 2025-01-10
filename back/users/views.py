@@ -12,6 +12,7 @@ from .models import CustomUser, BucketList
 from .serializers import UserSerializer, BucketListSerializer
 import logging
 from places.models import Place
+from uservisits.models import UserVisit
 
 logger = logging.getLogger(__name__)
 
@@ -268,7 +269,8 @@ def add_bucket_list_item(request, user_id, place_id):
         place = Place.objects.get(id=place_id)
         data = request.data
         added_at = data.get('added_at')
-        visited = data.get('visited', False)
+        visit = UserVisit.objects.filter(user=user, place=place).exists()
+        visited = visit
         bucket_list_item = BucketList(user=user, place=place, added_at=added_at, visited=visited)
         bucket_list_item.save()
         return Response({'message': 'Item added successfully'}, status=status.HTTP_200_OK)

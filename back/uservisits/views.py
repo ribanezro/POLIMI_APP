@@ -87,18 +87,36 @@ def add_visit(request):
     responses={200: UserVisitSerializer}
 )
 @api_view(['GET','DELETE', 'PUT'])
-@permission_classes([IsAuthenticated])
 def visit_detail(request, visit_id):
-    visit = UserVisit.objects.get(id=visit_id)
+    try:
+        visit = UserVisit.objects.get(id=visit_id)
+    except UserVisit.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
     if request.method == 'GET':
         serializer = UserVisitSerializer(visit)
         return Response(serializer.data)
+
     elif request.method == 'DELETE':
         visit.delete()
-        return Response('Visit deleted')
+        return Response(status=status.HTTP_200_OK)
+
     elif request.method == 'PUT':
         serializer = UserVisitSerializer(visit, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+@swagger_auto_schema(
+    method='get',
+    description='Get all visits of a user in a place',
+    responses={200: UserVisitSerializer(many=True)}
+)
+@api_view(['GET'])
+def user_place_visits(request, user_id, place_id):
+    user = User.objects.get(id=user_id)
+    place = Place.objects.get(id=place_id)
+    visits = UserVisit.objects.filter(user=user, place=place)
+    serializer = UserVisitSerializer(visits, many=True)
+    return Response(serializer.data)
