@@ -8,7 +8,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security Settings
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-82v7yr^zi#dpqte8wn88locjyw5n@$agqnzvv7&d^$pq-k8z%+')
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = 'True'
 ALLOWED_HOSTS = ['*']  # Replace '*' with your domain(s) in production.
 
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
