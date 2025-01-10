@@ -49,11 +49,20 @@ def place_visits(request, place_id):
 )
 @api_view(['POST'])
 def add_visit(request):
-    serializer = UserVisitSerializer(data=request.data)
-    if serializer.is_valid():
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        print("FILES:", request.FILES)  # Debugging: Log uploaded files
+        print("DATA:", request.data)    # Debugging: Log other request data
+
+        serializer = UserVisitSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("Validation errors:", serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        print("Unexpected error:", str(e))
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 
