@@ -282,15 +282,20 @@ def add_bucket_list_item(request, user_id, place_id):
     responses={200: 'Check if item is on user bucket list'},
 )
 @api_view(['GET'])
-def is_on_bucket_list(userId, placeId):
+def is_on_bucket_list(request, userId, placeId):
     try:
+        # Fetch user and place
         user = CustomUser.objects.get(id=userId)
         place = Place.objects.get(id=placeId)
-        bucket_list_item = BucketList.objects.filter(user=user, place=place)
-        return Response({"item": bucket_list_item}, status=status.HTTP_200_OK)
+
+        # Check if the item is in the bucket list and get the id
+        bucket_list_item = BucketList.objects.filter(user=user, place=place).first()
+
+        if bucket_list_item:
+            return Response({"item_exists": True, "id": bucket_list_item.id}, status=status.HTTP_200_OK)
+        else:
+            return Response({"item_exists": False, "id": None}, status=status.HTTP_200_OK)
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Place.DoesNotExist:
         return Response({'error': 'Place not found'}, status=status.HTTP_404_NOT_FOUND)
-    except BucketList.DoesNotExist:
-        return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
