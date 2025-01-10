@@ -11,11 +11,14 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-82v7yr^zi#dpqte8wn88l
 DEBUG = 'True'
 ALLOWED_HOSTS = ['*']  # Replace '*' with your domain(s) in production.
 
+AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
-AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+AWS_QUERYSTRING_AUTH = False  # Disable query string in URLs
+AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files with the same name
 
 DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
 MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/media/"
