@@ -48,18 +48,13 @@ def place_visits(request, place_id):
     responses={200: UserVisitSerializer}
 )
 @api_view(['POST'])
-def add_visit(request, user_id):
+def add_visit(request):
     serializer = UserVisitSerializer(data=request.data)
     if serializer.is_valid():
-        user = User.objects.get(id=user_id)
-        visit = serializer.save(user=user)
-
-        response_data = {
-            'visit': serializer.data,
-        }
-        return Response(response_data, status=status.HTTP_201_CREATED)
-
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # Borrar o actualizar una visita
 @swagger_auto_schema(
