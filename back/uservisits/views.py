@@ -82,3 +82,29 @@ def visit_detail(request, id):
     visit = UserVisit.objects.get(id=id)
     serializer = UserVisitSerializer(visit)
     return Response(serializer.data)
+
+@swagger_auto_schema(   
+    method='delete',
+    description='Delete a visit',
+    responses={200: 'Visit deleted'}
+)
+@api_view(['DELETE'])
+def delete_visit(request, id):
+    visit = UserVisit.objects.get(id=id)
+    visit.delete()
+    return Response('Visit deleted', status=status.HTTP_204_NO_CONTENT)
+
+@swagger_auto_schema(
+    method='put',
+    description='Update a visit',
+    request_body=UserVisitSerializer,
+    responses={200: UserVisitSerializer}
+)
+@api_view(['PUT'])
+def update_visit(request, id):
+    visit = UserVisit.objects.get(id=id)
+    serializer = UserVisitSerializer(visit, data=request.data)
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
