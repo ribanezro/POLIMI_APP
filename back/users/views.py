@@ -286,7 +286,8 @@ def is_on_bucket_list(userId, placeId):
     try:
         user = CustomUser.objects.get(id=userId)
         place = Place.objects.get(id=placeId)
-        return BucketList.objects.filter(user=user, place=place).exists()
+        bucket_list_item = BucketList.objects.filter(user=user, place=place)
+        return
     except CustomUser.DoesNotExist:
         return False
     except Place.DoesNotExist:
