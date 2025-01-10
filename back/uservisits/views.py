@@ -48,22 +48,14 @@ def place_visits(request, place_id):
     responses={200: UserVisitSerializer}
 )
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def add_visit(request):
+def add_visit(request, user_id):
     serializer = UserVisitSerializer(data=request.data)
     if serializer.is_valid():
-        visit = serializer.save(user=request.user)
-
-        factory = APIRequestFactory()
-        mission_check_request = factory.post('/gamification/check-missions/', {'visit_id': visit.id}, format='json')
-        mission_check_request.user = request.user 
-
-        from gamification.views import check_missions
-        mission_response = check_missions(mission_check_request)
+        user = User.objects.get(id=user_id)
+        visit = serializer.save(user=user)
 
         response_data = {
             'visit': serializer.data,
-            'mission_status': mission_response.data,
         }
         return Response(response_data, status=status.HTTP_201_CREATED)
 
