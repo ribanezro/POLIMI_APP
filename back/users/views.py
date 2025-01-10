@@ -287,9 +287,10 @@ def is_on_bucket_list(userId, placeId):
         user = CustomUser.objects.get(id=userId)
         place = Place.objects.get(id=placeId)
         bucket_list_item = BucketList.objects.filter(user=user, place=place)
-        return
+        return Response({"item": bucket_list_item}, status=status.HTTP_200_OK)
     except CustomUser.DoesNotExist:
-        return False
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Place.DoesNotExist:
-        return False
-    
+        return Response({'error': 'Place not found'}, status=status.HTTP_404_NOT_FOUND)
+    except BucketList.DoesNotExist:
+        return Response({'error': 'Item not found'}, status=status.HTTP_404_NOT_FOUND)
