@@ -77,23 +77,10 @@ def add_visit(request):
 def visit_detail(request, visit_id):
     try:
         visit = UserVisit.objects.get(id=visit_id)
-    except UserVisit.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
-    if request.method == 'GET':
         serializer = UserVisitSerializer(visit)
         return Response(serializer.data)
-
-    elif request.method == 'DELETE':
-        visit.delete()
-        return Response(status=status.HTTP_200_OK)
-
-    elif request.method == 'PUT':
-        serializer = UserVisitSerializer(visit, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    except UserVisit.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
     
 @swagger_auto_schema(
     method='get',
