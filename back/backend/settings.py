@@ -20,6 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-82v7yr^zi#dpqte8wn88locjyw5n@$agqnzvv7&d^$pq-k8z%+')
 DEBUG = 'True'
 ALLOWED_HOSTS = ['*']  # Replace '*' with your domain(s) in production.
+logger = logging.getLogger(__name__)
 
 AWS_STORAGE_BUCKET_NAME = os.getenv('AWS_STORAGE_BUCKET_NAME')
 AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
@@ -27,7 +28,11 @@ AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
 
-logger = logging.getLogger(__name__)
+logger.info(f"AWS_ACCESS_KEY_ID: {AWS_ACCESS_KEY_ID}")
+logger.info(f"AWS_SECRET_ACCESS_KEY: {AWS_SECRET_ACCESS_KEY}")
+logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
+logger.info(f"AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
+
 logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
 
 AWS_QUERYSTRING_AUTH = False  # Disable query string in URLs
