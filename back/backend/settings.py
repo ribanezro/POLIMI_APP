@@ -3,6 +3,16 @@ import os
 import dj_database_url
 from decouple import config
 
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+# Enable boto3 debugging
+logging.getLogger("boto3").setLevel(logging.DEBUG)
+logging.getLogger("botocore").setLevel(logging.DEBUG)
+logging.getLogger("s3transfer").setLevel(logging.DEBUG)
+logging.getLogger("urllib3").setLevel(logging.DEBUG)
+
 # Base Directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -16,6 +26,9 @@ AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = os.getenv('AWS_SECRET_ACCESS_KEY')
 AWS_S3_REGION_NAME = os.getenv('AWS_S3_REGION_NAME')
 AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+logger = logging.getLogger(__name__)
+logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
 
 AWS_QUERYSTRING_AUTH = False  # Disable query string in URLs
 AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files with the same name
