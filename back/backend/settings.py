@@ -33,8 +33,6 @@ logger.info(f"AWS_SECRET_ACCESS_KEY: {AWS_SECRET_ACCESS_KEY}")
 logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
 logger.info(f"AWS_S3_REGION_NAME: {AWS_S3_REGION_NAME}")
 
-logger.info(f"AWS_STORAGE_BUCKET_NAME: {AWS_STORAGE_BUCKET_NAME}")
-
 AWS_QUERYSTRING_AUTH = False  # Disable query string in URLs
 AWS_S3_FILE_OVERWRITE = False  # Prevent overwriting files with the same name
 
