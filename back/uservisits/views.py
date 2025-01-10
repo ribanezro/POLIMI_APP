@@ -50,9 +50,6 @@ def place_visits(request, place_id):
 @api_view(['POST'])
 def add_visit(request):
     try:
-        print("FILES:", request.FILES)  # Debugging: Log uploaded files
-        print("DATA:", request.data)    # Debugging: Log other request data
-
         serializer = UserVisitSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
