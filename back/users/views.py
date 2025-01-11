@@ -4,6 +4,7 @@ from rest_framework import status
 from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from django.contrib.auth import authenticate
+from django.db.models import Q
 from django.conf import settings
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
@@ -142,20 +143,35 @@ def user_profile(request, user_id):
         user = CustomUser.objects.get(id=user_id)
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    
     if request.method == 'GET':
         serialized_user = UserSerializer(user).data
         return Response(serialized_user, status=status.HTTP_200_OK)
+    
     elif request.method == 'PUT':
         data = request.data
-        user.username = data.get('username', user.username)
+        new_username = data.get('username', user.username)
+        
+        # Check if the new username already exists (excluding the current user)
+        if CustomUser.objects.filter(Q(username=new_username) & ~Q(id=user.id)).exists():
+            return Response({'error': 'Username already exists'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Update user fields
+        user.username = new_username
         user.given_name = data.get('given_name', user.given_name)
         user.family_name = data.get('family_name', user.family_name)
         user.bio = data.get('bio', user.bio)
+        
         if 'profile_picture' in request.FILES:
             user.profile_picture = request.FILES['profile_picture']
+        
         user.save()
         serialized_user = UserSerializer(user).data
-        return Response({'message': 'Profile updated successfully', 'user': serialized_user}, status=status.HTTP_200_OK)
+        
+        return Response(
+            {'message': 'Profile updated successfully', 'user': serialized_user}, 
+            status=status.HTTP_200_OK
+        )
 
 @swagger_auto_schema(
     method='get',
