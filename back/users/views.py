@@ -9,7 +9,7 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.permissions import IsAdminUser
 from .models import CustomUser, BucketList
-from .serializers import UserSerializer, BucketListSerializer
+from .serializers import UserSerializer, BucketListSerializer, UserNamePictureSerializer
 import logging
 from places.models import Place
 from uservisits.models import UserVisit
@@ -299,3 +299,13 @@ def is_on_bucket_list(request, userId, placeId):
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Place.DoesNotExist:
         return Response({'error': 'Place not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+@swagger_auto_schema(
+    method='get',
+    responses={200: 'List of all users'},
+)
+@api_view(['GET'])
+def list_users(request):
+    users = CustomUser.objects.all()
+    serialized_users = UserNamePictureSerializer(users, many=True).data
+    return Response(serialized_users, status=status.HTTP_200_OK)
